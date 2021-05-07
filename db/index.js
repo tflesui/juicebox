@@ -11,9 +11,26 @@ const getAllUsers = async () => {
     return rows;
 }
 
+const createUser = async ({ username, password }) => {
+    try {
+        const { rows } = await client.query(`
+            INSERT INTO users(username, password)
+            VALUES ($1, $2)
+            ON CONFLICT (username) DO NOTHING
+            RETURNING *;
+        `, [username, password]);
+
+        return rows;
+    } catch (err) {
+        throw err;
+    }
+}
+
+
 module.exports = {
     client,
     getAllUsers,
+    createUser,
 }
 
 
