@@ -1,18 +1,20 @@
 // grab our client with destructuring from the export in index.js
 const { client,
         getAllUsers,
-        createUser
+        createUser,
+        updateUser,
+        createPost
 } = require('./index');
 
 const createInitialUsers = async () => {
   try {
     console.log('Creating users...');
 
-    const alapati = await createUser({ username: 'alapati', password: 'pati99' });
+    await createUser({ username: 'alapati', password: 'pati99', name: 'albert', location: 'california' });
 
-    const sandra = await createUser({ username: 'sandra', password: '2sandy4me' });
+    await createUser({ username: 'sandra', password: '2sandy4me', name: 'sandra', location: 'washington' });
 
-    const glamgal = await createUser({ username: 'glamgal', password: 'soglam' });
+    await createUser({ username: 'glamgal', password: 'soglam', name: 'Nina', location: 'hawaii' });
 
 
     console.log('Finished creating users!');
@@ -27,6 +29,7 @@ const dropTables = async () => {
       console.log('Dropping tables...');
 
       await client.query(`
+          DROP TABLE IF EXISTS posts;
           DROP TABLE IF EXISTS users;
       `);
 
@@ -45,7 +48,20 @@ const createTables = async () => {
           CREATE TABLE users (
               id SERIAL PRIMARY KEY,
               username VARCHAR(255) UNIQUE NOT NULL,
-              password VARCHAR(255) NOT NULL
+              password VARCHAR(255) NOT NULL,
+              name VARCHAR(255) NOT NULL,
+              location VARCHAR(255) NOT NULL,
+              active BOOLEAN DEFAULT true
+          );
+      `);
+
+      await client.query(`
+          CREATE TABLE posts (
+              id SERIAL PRIMARY KEY,
+              "authorId" INTEGER REFERENCES users(id) NOT NULL,
+              title VARCHAR(255) NOT NULL,
+              content TEXT NOT NULL,
+              active BOOLEAN DEFAULT true
           );
       `);
 
@@ -72,8 +88,16 @@ const testDB = async () => {
   try{
       console.log('Testing database...');
 
+      console.log('Calling getAllUsers');
       const users = await getAllUsers();
-      console.log('getAllUsers:', users);
+      console.log('Result:', users);
+
+      console.log('Calling updateUser on users[0]');
+      const updateUserResult = await updateUser(users[0].id, {
+        name: "Newname Sogood",
+        location: "Kentucky"
+      });
+      console.log('Result:', updateUserResult);
 
       console.log('Finished database tests!');
   } catch (error) {
