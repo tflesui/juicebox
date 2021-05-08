@@ -118,7 +118,7 @@ const getAllPosts = async () => {
 
 const getPostsByUser = async userId => {
     try {
-        const { rows } = client.query(`
+        const { rows } = await client.query(`
             SELECT * 
             FROM posts
             WHERE "authorId"=${ userId };
