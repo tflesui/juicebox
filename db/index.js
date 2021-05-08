@@ -62,9 +62,8 @@ const createPost = async ({
     }) => {
     try {
         const { rows: [ posts ] } = await client.query(`
-            INSERT INTO posts(authorId, title, content)
+            INSERT INTO posts("authorId", title, content)
             VALUES ($1, $2, $3)
-            ON CONFLICT (username) DO NOTHING
             RETURNING *;
         `, [authorId, title, content]);
 
@@ -74,7 +73,7 @@ const createPost = async ({
     }
 }
 
-const updatePost = async (id, {
+const updatePost = async (id, fields = {
     title,
     content,
     active
@@ -97,26 +96,32 @@ const updatePost = async (id, {
         RETURNING *;
         `, Object.values(fields));
 
-        return user;
+        return posts;
     } catch(err) {
         throw err;
     }
 }
 
 const getAllPosts = async () => {
-    const { rows } = await client.query(
-        `SELECT "authorId", title, content
-        FROM users;
-    `);
-
-    return rows;
+    try{
+        const { rows } = await client.query(
+            `SELECT *
+            FROM posts;
+        `);
+    
+        return rows;
+    }catch (err) {
+        throw err;
+    }
+    
 }
 
 const getPostsByUser = async userId => {
     try {
         const { rows } = client.query(`
-            SELECT * FROM posts
-            WHERE "authorId"=${ userId }
+            SELECT * 
+            FROM posts
+            WHERE "authorId"=${ userId };
         `);
 
         return rows;
@@ -125,12 +130,38 @@ const getPostsByUser = async userId => {
     }
 }
 
+const getUserById = async userId => {
+    // Grab all columns except password from user object
+    try{
+        const { rows: [ user ]} = await client.query(`
+        SELECT id, username, name, location, active
+        FROM users
+        WHERE id=${ userId };    
+        `);
+
+        if(!user){
+            return null;
+        }
+
+        user.posts = await getPostsByUser(userId);
+
+        return user;
+    } catch(err) {
+        throw err;
+    }
+    
+}
+
 module.exports = {
     client,
     getAllUsers,
     createUser,
     updateUser,
-    createPost
+    createPost,
+    updatePost,
+    getUserById,
+    getAllPosts,
+    getPostsByUser
 }
 
 
