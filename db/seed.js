@@ -7,8 +7,10 @@ const { client,
         getAllPosts,
         getPostsByUser,
         getUserById,
+        getPostById,
         updatePost,
         createTags,
+        createPostTag,
         addTagsToPost
 } = require('./index');
 
@@ -34,31 +36,39 @@ const createInitialPosts = async () => {
   try {
     const [alapati, sandra, glamgal] = await getAllUsers();
 
+    console.log('Creating posts...');
+
     await createPost({
       authorId: alapati.id,
       title: "First Post",
-      content: "My first post. Mo' queries, mo' problems"
+      content: "My first post. Mo' queries, mo' problems",
+      tags: ["#happy", "#worst-day-ever"]
     });
 
     await createPost({
       authorId: alapati.id,
       title: "Second Post",
-      content: "My second post. I love sports!"
+      content: "My second post. I love sports!",
+      tags: ["#happy", "#youcandoanything"]
     });
 
     await createPost({
       authorId: sandra.id,
       title: "1st Post",
-      content: "My first post. Go Niners!"
+      content: "My first post. Go Niners!",
+      tags: ["#happy", "#youcandoanything", "#canmandoeverything"]
     });
 
     await createPost({
       authorId: glamgal.id,
       title: "First Post",
-      content: "Blah blah blah. I'm an influencer!"
+      content: "Blah blah blah. I'm an influencer!",
+      tags: ["#worst-day-ever", "#canmandoeverything"]
     });
 
+    console.log('Finished creating posts!');
   } catch(err) {
+    console.log('Error creating posts!');
     throw err;
   }
 }
@@ -159,7 +169,6 @@ const rebuildDB = async () => {
       await createTables();
       await createInitialUsers();
       await createInitialPosts();
-      await createInitialTags();
   } catch(err) {
     console.log('Error during rebuildDB');
       throw err;

@@ -58,16 +58,19 @@ const updateUser = async (id, fields = {}) => {
 const createPost = async ({ 
     authorId, 
     title, 
-    content
+    content,
+    tags = []
     }) => {
     try {
-        const { rows: [ posts ] } = await client.query(`
+        const { rows: [ post ] } = await client.query(`
             INSERT INTO posts("authorId", title, content)
             VALUES ($1, $2, $3)
             RETURNING *;
         `, [authorId, title, content]);
 
-        return posts;
+        const tagList = await createTags(tags);
+
+        return await addTagsToPost(post.id, tagList);
     } catch (err) {
         throw err;
     }
@@ -193,12 +196,16 @@ const updatePost = async (id, fields = {
 
 const getAllPosts = async () => {
     try{
-        const { rows } = await client.query(
-            `SELECT *
+        const { rows: postIds } = await client.query(
+            `SELECT id
             FROM posts;
         `);
+
+        const posts = await Promise.all(postIds.map(
+            post => getPostById(post.id)
+        ));
     
-        return rows;
+        return posts;
     }catch (err) {
         throw err;
     }
@@ -207,13 +214,17 @@ const getAllPosts = async () => {
 
 const getPostsByUser = async userId => {
     try {
-        const { rows } = await client.query(`
-            SELECT * 
+        const { rows: postIds } = await client.query(`
+            SELECT id 
             FROM posts
             WHERE "authorId"=${ userId };
         `);
 
-        return rows;
+        const posts = await Promise.all(postIds.map(
+            post => getPostById(post.id)
+        ));
+
+        return posts;
     } catch(err) {
         throw err;
     }
@@ -252,6 +263,8 @@ module.exports = {
     getAllPosts,
     getPostsByUser,
     createTags,
+    createPostTag,
+    getPostById,
     addTagsToPost
 }
 
