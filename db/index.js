@@ -175,11 +175,6 @@ const updatePost = async (postId, fields = {}) => {
         (key, index) => `"${ key }"=$${ index + 1 }`
     ).join(', ');
 
-    // return early if this is called without fields
-    // if(setString.length === 0) {
-    //     return;
-    // }
-
     try {
         if (setString.length > 0) {
             await client.query(`
@@ -236,6 +231,24 @@ const getAllPosts = async () => {
     
 }
 
+const getPostsByTagName = async tagName => {
+    try {
+        const { rows: postIds } = await client.query(`
+            SELECT posts.id
+            FROM posts
+            JOIN post_tags ON posts.id=post_tags."postId"
+            JOIN tags ON tags.id=post_tags."tagId"
+            WHERE tags.name=$1;
+        `, [tagName]);
+
+        return await Promise.all(postIds.map(
+            post => getPostById(post.id)
+        ));
+    } catch(err) {
+        throw err;
+    }
+}
+
 const getPostsByUser = async userId => {
     try {
         const { rows: postIds } = await client.query(`
@@ -286,6 +299,7 @@ module.exports = {
     getUserById,
     getAllPosts,
     getPostsByUser,
+    getPostsByTagName,
     createTags,
     createPostTag,
     getPostById,
