@@ -2,6 +2,8 @@ const PORT = 3000;
 const express = require('express');
 const app = express();
 
+const apiRouter = require('./api');
+
 // const bodyParser = require('body-parser');
 app.use(express.json());
 
@@ -15,13 +17,12 @@ app.use((req, res, next) => {
     console.log('<___Body Logger END___>');
 
     next();
-})
-
-const apiRouter = require('./api');
-app.use('/api', apiRouter);
+});
 
 const { client } = require('./db');
 client.connect();
+
+app.use('/api', apiRouter);
 
 app.listen(PORT, () => {
     console.log('Listening on port', PORT);

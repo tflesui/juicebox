@@ -55,6 +55,42 @@ const updateUser = async (id, fields = {}) => {
     }
 }
 
+const getUserById = async userId => {
+    // Grab all columns except password from user object
+    try{
+        const { rows: [ user ]} = await client.query(`
+        SELECT id, username, name, location, active
+        FROM users
+        WHERE id=${ userId };    
+        `);
+
+        if(!user){
+            return null;
+        }
+
+        user.posts = await getPostsByUser(userId);
+
+        return user;
+    } catch(err) {
+        throw err;
+    }
+    
+}
+
+const getUserByUsername = async username => {
+    try {
+        const { rows: [user] } = await client.query(`
+            SELECT *
+            FROM users
+            WHERE username=$1;        
+        `, [username]);
+
+        return user;
+    } catch(err) {
+        throw err;
+    }
+}
+
 const createPost = async ({ 
     authorId, 
     title, 
@@ -280,28 +316,6 @@ const getPostsByUser = async userId => {
     }
 }
 
-const getUserById = async userId => {
-    // Grab all columns except password from user object
-    try{
-        const { rows: [ user ]} = await client.query(`
-        SELECT id, username, name, location, active
-        FROM users
-        WHERE id=${ userId };    
-        `);
-
-        if(!user){
-            return null;
-        }
-
-        user.posts = await getPostsByUser(userId);
-
-        return user;
-    } catch(err) {
-        throw err;
-    }
-    
-}
-
 module.exports = {
     client,
     getAllUsers,
@@ -310,6 +324,7 @@ module.exports = {
     createPost,
     updatePost,
     getUserById,
+    getUserByUsername,
     getAllPosts,
     getPostsByUser,
     getPostsByTagName,
