@@ -328,6 +328,7 @@ module.exports = {
     getAllPosts,
     getPostsByUser,
     getPostsByTagName,
+    getPostById,
     createTags,
     createPostTag,
     getPostById,
